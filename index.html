@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript</title>
+    <link rel="shortcut icon" href="Js.png" type="image/x-icon">
+    <style>
+        body {
+            user-select: none;       /* Standard */
+            -webkit-user-select: none; /* Chrome/Safari */
+            -moz-user-select: none;    /* Firefox */
+            -ms-user-select: none;     /* IE/Edge */
+        }
+        .main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        table, th, td {
+            border: 1px solid rgb(163, 163, 163);
+            border-collapse: collapse;
+            background-color: white ;
+            padding: 10px;
+            text-align: left;
+            width: 80%;
+            color: black;
+        }
+    </style>
+</head>
+<body bgcolor="black">
+    <h1 style="text-align: center; color: white;">JavaScript Practice</h1>
+    <div class="main">
+        <table id="bookTable">
+        <tr>
+            <th>Book Name</th>
+            <th>Author</th>
+            <th>Pages</th>
+            <th>Status</th>
+            <th>Remove</th>
+        </tr>
+        </table>
+        <br>
+        <button id="addBookBtn">Add Book</button>        
+    </div>
+
+    <script>
+        let myLibrary = [];
+
+        function Book(name, author, pages, status) {
+            this.id = crypto.randomUUID();
+            this.name = name;
+            this.author = author;
+            this.pages = pages;
+            this.read = (status.toLowerCase() === "yes"); 
+        }
+
+        function saveLibrary() {
+            localStorage.setItem("myLibrary", JSON.stringify(myLibrary));
+        }
+
+        function loadLibrary() {
+            const storedLibrary = localStorage.getItem("myLibrary");
+            if (storedLibrary) {
+                const parsedLibrary = JSON.parse(storedLibrary);
+                myLibrary = parsedLibrary.map(book => new Book(book.name, book.author, book.pages, book.read ? "yes" : "no"));
+            }
+        }
+
+        function displayBooks() {
+            const table = document.getElementById("bookTable");
+
+            // Remove old rows except header
+            while (table.rows.length > 1) {
+                table.deleteRow(1);
+            }
+
+            // Render rows
+            myLibrary.forEach(book => {
+                const row = document.createElement("tr");
+                const nameCell = document.createElement("td");
+                const authorCell = document.createElement("td");
+                const pagesCell = document.createElement("td");
+                const stateCell = document.createElement("td");
+                const actionCell = document.createElement("td");
+                const deleteBtn = document.createElement("button");
+                
+                deleteBtn.textContent = "🗑️";
+                deleteBtn.style.border = "none";
+                deleteBtn.style.background = "none";
+                deleteBtn.style.cursor = "pointer";
+                actionCell.style.textAlign = "center";
+
+                deleteBtn.addEventListener("click", () => {
+                    myLibrary = myLibrary.filter(b => b.id !== book.id);
+                    saveLibrary();
+                    displayBooks();
+                });
+
+                stateCell.addEventListener("click", () => {
+                    book.read = !book.read;
+                    saveLibrary();
+                    displayBooks();
+                });
+
+                nameCell.textContent = book.name;
+                authorCell.textContent = book.author;
+                pagesCell.textContent = book.pages;
+                stateCell.textContent = book.read ? "✔️" : "❌";
+                stateCell.style.textAlign = "center";
+                stateCell.style.cursor = "pointer";
+                
+                actionCell.appendChild(deleteBtn);
+
+                row.appendChild(nameCell);
+                row.appendChild(authorCell);
+                row.appendChild(pagesCell);
+                row.appendChild(stateCell);
+                row.appendChild(actionCell);
+                table.appendChild(row);
+            });
+        }
+
+        function addBook() {
+            const name = prompt("Enter book name:");
+            const author = prompt("Enter author name:");
+            const pages = prompt("Enter number of pages:");
+            const status = prompt("Have you read it? (yes/no):").toLowerCase();
+
+            if (name && author && pages && (status === "yes" || status === "no")) {
+                const book = new Book(name, author, pages, status);
+                myLibrary.push(book);
+                saveLibrary();
+                displayBooks();
+            } else {
+                alert("Please enter valid inputs (status must be yes or no).");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadLibrary();
+
+            // Add sample books only if library is empty
+            if (myLibrary.length === 0) {
+                myLibrary.push(new Book("Atomic Habits", "James Clear", "219", "yes"));
+                myLibrary.push(new Book("The Subtle Art of Not Giving a F*ck", "Mark Manson", "224", "no"));
+                myLibrary.push(new Book("Deep Work", "Cal Newport", "304", "yes"));
+                myLibrary.push(new Book("Cant Hurt Me", "David Goggins", "364", "no"));
+                saveLibrary();
+            }
+
+            displayBooks();
+            document.getElementById("addBookBtn").addEventListener("click", addBook);
+        });
+    </script>
+</body>
+</html>
