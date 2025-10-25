@@ -11,12 +11,24 @@
             -webkit-user-select: none; /* Chrome/Safari */
             -moz-user-select: none;    /* Firefox */
             -ms-user-select: none;     /* IE/Edge */
+            overflow-x: hidden;
         }
-        .main {
+        .main{
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: 10px;
+        }
+        form{
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            width: 210px;
+            gap: 3px;
+            border: 1px solid rgb(163, 163, 163);
         }
         table, th, td {
             border: 1px solid rgb(163, 163, 163);
@@ -24,14 +36,68 @@
             background-color: white ;
             padding: 10px;
             text-align: left;
-            width: 80%;
             color: black;
+            height: fit-content;
+        }
+        table {
+            width: 800px; /* fixed width prevents border from shifting when rows are removed */
+            table-layout: fixed; /* stable column widths */
+        }
+        th:nth-last-child(1), td:nth-last-child(1) {
+            width: 60px; /* fixed width for remove column */
+        }
+        th:nth-last-child(2), td:nth-last-child(2) {
+            width: 45px; /* fixed width for remove column */
+        }
+        th:nth-last-child(3), td:nth-last-child(3) {
+            width: 40px; /* fixed width for remove column */
+            text-align: center;
+        }
+        th, td {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap; /* keep columns stable; change to normal if you want wrapping */
+        }
+        .status{
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(0, 0, 0, 0.6);
+        }
+        .status , input{
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+            visibility: hidden;
         }
     </style>
 </head>
-<body bgcolor="black">
-    <h1 style="text-align: center; color: white;">JavaScript Practice</h1>
+<body style="background-color: aliceblue;">
+    <h1 style="text-align: center; color: black;">JavaScript Practice</h1>
     <div class="main">
+        <div class="form">
+            <form action="">
+                <input type="text" placeholder="Book Name" id="bookname">
+                <span class="error" id="bookError">fd</span>
+                <input type="text" placeholder="Author" id="author">
+                <span class="error" id="authorError">fd</span>
+                <input type="number" placeholder="Pages" id="pages">
+                <span class="error" id="pagesError">fd</span>
+                <div class="status">
+                    <label for="status">Have you read this book?</label>
+                    <input type="checkbox" name="status" id="status">
+                </div>
+                
+                <input type="submit" id="addBookBtn">
+                
+                
+            </form>
+        </div>
+
+        <br>
         <table id="bookTable">
         <tr>
             <th>Book Name</th>
@@ -42,7 +108,6 @@
         </tr>
         </table>
         <br>
-        <button id="addBookBtn">Add Book</button>        
     </div>
 
     <script>
@@ -122,23 +187,8 @@
             });
         }
 
-        function addBook() {
-            const name = prompt("Enter book name:");
-            const author = prompt("Enter author name:");
-            const pages = prompt("Enter number of pages:");
-            const status = prompt("Have you read it? (yes/no):").toLowerCase();
-
-            if (name && author && pages && (status === "yes" || status === "no")) {
-                const book = new Book(name, author, pages, status);
-                myLibrary.push(book);
-                saveLibrary();
-                displayBooks();
-            } else {
-                alert("Please enter valid inputs (status must be yes or no).");
-            }
-        }
-
         document.addEventListener("DOMContentLoaded", () => {
+
             loadLibrary();
 
             // Add sample books only if library is empty
@@ -153,6 +203,64 @@
             displayBooks();
             document.getElementById("addBookBtn").addEventListener("click", addBook);
         });
+
+
+        function addBook(event) {
+            event.preventDefault();
+        
+            const nameInput = document.getElementById("bookname");
+            const authorInput = document.getElementById("author");
+            const pagesInput = document.getElementById("pages");
+
+            const nameError = document.getElementById("bookError");
+            const authorError = document.getElementById("authorError");
+            const pagesError = document.getElementById("pagesError");
+
+            nameError.style.visibility = "hidden";
+            authorError.style.visibility = "hidden";
+            pagesError.style.visibility = "hidden";
+
+            const name = nameInput.value;
+            const author = authorInput.value;
+            const pages = pagesInput.value;
+            
+            let valid = true;
+
+            if (name.trim() === "") {
+                nameError.textContent = "Book name is required.";
+                nameError.style.visibility = "visible";
+                valid = false;
+            }
+
+            if (author.trim() === "") {
+                authorError.textContent = "Author name is required.";
+                authorError.style.visibility = "visible";
+                valid = false;
+            }
+
+            if (pages.trim() === "" || isNaN(pages) || Number(pages) <= 0) {
+                pagesError.textContent = "Please enter a valid number of pages.";
+                pagesError.style.visibility = "visible";
+                valid = false;
+            }
+            if (!valid) return;
+            const status = document.getElementById("status").checked ? "yes" : "no";
+            const newBook = new Book(name, author, pages, status);
+            myLibrary.push(newBook);
+            saveLibrary();
+            displayBooks();
+
+            // Clear form
+            nameInput.value = "";
+            authorInput.value = "";
+            pagesInput.value = "";
+            document.getElementById("status").checked = false;
+        
+        }
+        
+
+
+
     </script>
 </body>
 </html>
